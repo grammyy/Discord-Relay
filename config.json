@@ -1,0 +1,28 @@
+{
+    "global": {
+        "two-way": true,
+        "name": "nickname",
+        "server": " (SERVER)",
+        "ignore-bots": false 
+    },
+
+    "redirects": {
+        "1194475846396817490": {
+            "name": "meow",
+            "webhook": "https://discord.com/api/webhooks/1320122115873308792/LnVh1eUJmJRHmwUDRZrj7E1HRwxQ7MMe_OlknnWIVDq3iXL4RWi4-SWi0HGq12GRPjFI",
+            "goto": {
+                "1194419402288939009": "https://discord.com/api/webhooks/1319450730779770980/8aihSA8FuXCz1Cxguka0QzCEUK2nJg_mzpCvJWidjXZoSy27MCeDuGXGshlqKIndRsBF"
+            },
+            "network":305525
+        },
+
+        "1120967740748988476": {
+            "webhook": "https://discord.com/api/webhooks/1320137497111691294/FFry5ravBLBWxJqC5-dG6qCYmYNJMwtbAL8pF5aCiZ05fP94c-FEDvRUt76MgkGu2JUd",
+            "two-way": true,
+            "goto": {
+                "1194419402288939009": "https://discord.com/api/webhooks/1319450730779770980/8aihSA8FuXCz1Cxguka0QzCEUK2nJg_mzpCvJWidjXZoSy27MCeDuGXGshlqKIndRsBF",
+                "1320259008098996234": "https://discord.com/api/webhooks/1320269369304944721/E3JpSj5cPJSPcyISqFf_qM75BSI3N7T9MhO58CV9N7gVKaGNtL_3U6A_O1FfJICI1l4X"
+            }
+        }
+    }
+}

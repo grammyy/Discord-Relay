@@ -1,0 +1,18 @@
+todo:
+    interface for adding channels easily, probably web type thing - should be last step
+    advance chat
+        * color changing if possible
+        * delete if original is deleted
+        * proxy reactions
+        * proxy replies if not already
+        * add links to original on replies
+        * proxy attachments
+        * proxy permissions
+            if everyone ping is turned off on relay, even if its on for the relayed - it will be safe typed regardless unless both are turned on
+    server-wide channel logs for servers
+
+    modules:
+        two-way
+        edit - for editing config based on interface commands
+        role color - color change via cached roles?
+

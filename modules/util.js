@@ -5,7 +5,7 @@ var util = {
         return content.replace(urlRegex, (url) => `<${url}>`)
     },
 
-    init:function(){
+    init:function() {
         return `[ ${"OK".green} ] "Util" module loaded successfully.`
     }
 }

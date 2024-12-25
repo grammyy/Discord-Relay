@@ -4,7 +4,7 @@ import webhook from "./webhook.js"
 
 var twoway = {
     init:function(){
-        hooks.add("messageCreate", async function(message){
+        hooks.add("messageCreate", async function(message) {
             var twoway = redirects[message.guildId] && redirects[message.guildId]["two-way"] !== undefined
                 ? redirects[message.guildId]["two-way"]
                 : settings["two-way"]
@@ -14,9 +14,15 @@ var twoway = {
                     var goto = redirects[channel].goto || {}
         
                     if (goto[message.channel.id]) {
-                        var log = await webhook.relay(redirects[channel].webhook, message)
-                        
-                        console.log(`   -> Reverse routing: "${message.content}" as ${log.author.username} to ${log.channel_id}`)
+                        try{    
+                            var log = await webhook.relay(redirects[channel].webhook, message)
+                        console.log(log)
+                            console.log(`   -> Reverse routing: "${message.content}" as ${log.author.username} to ${log.channel_id}`)
+                        } catch(error) {
+                            console.log(`   -> Reverse routing failed: ${error}/`)
+                            
+                            return
+                        }
                     }
                 }
             }

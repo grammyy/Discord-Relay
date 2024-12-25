@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits } from "discord.js"
+import { watch } from "chokidar"
 import color from "colors"
 import fs from "fs"
 import env from "dotenv"
@@ -20,6 +21,7 @@ export var redirects = config.redirects
 // ↓ hooks ↓
 export var hooks = {
     messageCreate: [],
+    messageDelete: [],
 
     add:function(event, func) {
         hooks[event].push(func)
@@ -34,6 +36,8 @@ var client = new Client({
     ]
 })
 
+// ↓ bot logic and behavior ↓
+
 client.once('ready', () => {
     console.log(twoway.init())
     console.log(util.init())
@@ -46,22 +50,41 @@ client.once('ready', () => {
 client.on('messageCreate', async message => {
     if (message.webhookId) return
 
-    // ↓ todo: add channel searching | check if the channel ID or name matches a source channel in redirects ↓
-    var hookedChannel = redirects[message.channel.id]
-
-    if (hookedChannel) {
-        console.log(`Relaying message from ${message.guild.name} (${message.channel.name}): "${message.content}"`)
-
-        for (var channel of Object.keys(redirects[message.channel.id].goto)) {
-            var log = await webhook.relay(redirects[message.channel.id].goto[channel], message)
-
-            console.log(`   -> Routing as ${log.author.username} to: ${log.channel_id}`)
-        }
-    }
-
     for (var hook of hooks.messageCreate) {
         hook(message)
     }
 })
 
+client.on('messageDelete', async message => {
+    if (message.partial) {
+        try {
+            await message.fetch() // Fetch the full message if it was partial
+        } catch (error) {
+            console.log(`Failed to fetch deleted message: ${error}`)
+            
+            return
+        }
+    }
+
+    console.log(message.guildId, message)
+
+    for (var hook of hooks.messageDelete) {
+        hook(message)
+    }
+})
+
 client.login(token)
+
+// ↓ non-important setup; post-init ↓
+
+var watcher = watch("config.json", {
+    persistent: true
+})
+
+watcher.on("change", () => {
+    console.log('Config file updated, reloading...')
+
+    config = JSON.parse(fs.readFileSync("config.json", "utf8"))
+    settings = config.global
+    redirects = config.redirects
+})

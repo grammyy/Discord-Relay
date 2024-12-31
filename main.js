@@ -6,6 +6,7 @@ import env from "dotenv"
 
 // ↓ modules ↓
 import twoway from "./modules/twoway.js"
+import logging from "./modules/logging.js"
 import util from "./modules/util.js"
 import webhook from "./modules/webhook.js"
 
@@ -39,6 +40,7 @@ var client = new Client({
 // ↓ bot logic and behavior ↓
 
 client.once('ready', () => {
+    console.log(logging.init())
     console.log(twoway.init())
     console.log(util.init())
     console.log(webhook.init())
@@ -65,8 +67,6 @@ client.on('messageDelete', async message => {
             return
         }
     }
-
-    console.log(message.guildId, message)
 
     for (var hook of hooks.messageDelete) {
         hook(message)

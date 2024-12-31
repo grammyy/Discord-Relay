@@ -2,6 +2,7 @@ import { WebhookClient } from "discord.js"
 
 // ↓ modules ↓
 import { hooks, redirects, settings } from "../main.js"
+import logging  from "./logging.js"
 import util  from "./util.js"
 
 // ↓ relay messages using webhooks ↓
@@ -21,7 +22,7 @@ var webhook = {
                 }
             }
             
-            var webhookClient = new WebhookClient({ url: webhook })
+            var client = new WebhookClient({ url: webhook })
       
             // ↓ configuration ↓
             var server = redirects[message.guildId] ? redirects[message.guildId].server : false
@@ -51,8 +52,8 @@ var webhook = {
       
                 content = reply + "\n" + content
             }
-      
-            return await webhookClient.send({
+
+            return await client.send({
                 username: authorName,
                 avatarURL: authorAvatarURL,
                 content: content,
@@ -65,41 +66,80 @@ var webhook = {
 
     delete:function() {},
 
+    edit:function() {},
+
+    search:async function() {},
+
     init:function() {
         hooks.add("messageCreate", async function(message){
             // ↓ todo: add channel searching | check if the channel ID or name matches a source channel in redirects ↓
-            var hookedChannel = redirects[message.channel.id]
+            var channel = redirects[message.channel.id]
+            var channelCache = {}
         
-            if (hookedChannel) {
-                console.log(`Relaying message from ${message.guild.name} (${message.channel.name}): "${message.content}"`)
-        
-                for (var channel of Object.keys(redirects[message.channel.id].goto)) {
+            if (channel) {
+                console.group(`Relaying message from ${message.guild.name} (${message.channel.name}): "${message.content}"`)
+            
+                var start = performance.now()
+            
+                for (var channels of Object.keys(channel.goto)) {
+                    var channelId = channel.goto[channels]
+
                     try{    
-                        var log = await webhook.relay(redirects[message.channel.id].goto[channel], message)
-        
-                        console.log(`   -> Routing as ${log.author.username} to: ${log.channel_id}`)
-                    } catch(error) {
-                        console.log(`   -> Routing failed: ${error}/`)
+                        var log = await webhook.relay(channelId, message)
+            
+                        console.log(`Routing as ${log.author.username} to: ${log.channel_id}`)
                         
-                        return
+                        channelCache[log.channel_id] = {
+                            channelId: log.channel_id,
+                        }
+                    } catch(error) {
+                        console.log(`Routing failed: ${error}/`)
+
+                        channelCache[channelId] = {
+                            channelId: channelId,
+                            error: error
+                        }
                     }
                 }
-            }
-        })
+            
+                var end = performance.now()
+                var duration = (end - start).toFixed(2)
+            
+                if (channel.logs) {
+                    logging.log(channel.logs, {
+                        title: `messageCreate log from: ${message.author.username}`,
+                        description: `Relaying message from ${message.guild.name} (${message.channel.name}): ["${message.content}"](https://discord.com/channels/${message.guildId}/${message.channelId}/${message.id})`,
+                        color: 0x00ff00,
+                        fields: Object.keys(channel.goto).map(channelId => ({
+                            name: `${channelCache[channelId]?.error ? "Error while " : ""}Relaying to:`,
+                            value: channelCache[channelId].channelId + (channelCache[channelId]?.error ? ` -> "${channelCache[channelId]?.error}"` : ""),
+                            inline: true
+                        })),
+                        footer: {
+                            text: `Completed in ${duration}ms`
+                        },
 
-        hooks.add("messageDelete", async function(message){
-            console.log(`Message deleted in ${message.guild?.name || "Unknown Guild"} (${message.channel.name}): "${message.content}"`)
-
-            var hookedChannel = redirects[message.guildId]
-
-            if (hookedChannel) {
-                console.log(hookedChannel, message)
-
-                for (var channel of Object.keys(hookedChannel.goto)) {
-                    console.log(channel)
+                        // todo: change this out for actual settings/fallback
+                        username: "test relay",
+                        avatarUrl: "https://cdn.discordapp.com/avatars/1308288522574233661/e22cc7964fce3430dcc142f60ddd84b3.webp?size=1024&width=506&height=506"
+                    })
                 }
+
+                console.groupEnd()
             }
         })
+
+        // hooks.add("messageDelete", async function(message){
+        //     console.log(`Message deleted in ${message.guild?.name || "Unknown Guild"} (${message.channel.name}): "${message.content}"`)
+
+        //     var channel = redirects[message.channel.id]
+
+        //     if (channel) {
+        //         for (var channel of Object.keys(channel.goto)) {
+        //             console.log(await webhook.search(channel, message))
+        //         }
+        //     }
+        // })
 
         return `[ ${"OK".green} ] "Webhook" module loaded successfully.`
     }

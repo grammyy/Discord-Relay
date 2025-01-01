@@ -22,8 +22,6 @@ var logging = {
             embeds: [embed],
         }
 
-        console.log(event.description)
-
         client.send(payload).catch(error => {
             console.error(`Relay message log failed: "${error}".`)
         })

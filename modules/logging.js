@@ -1,7 +1,8 @@
 import { WebhookClient, EmbedBuilder } from "discord.js"
+import color from "colors"
 
 // ↓ modules ↓
-// import { hooks, redirects, settings } from "../main.js"
+import { settings } from "../main.js"
 
 var logging = {
     // ↓ log to channel (optional) & log to console ↓
@@ -17,13 +18,13 @@ var logging = {
             .setFooter(event.footer)
 
         var payload = {
-            username: event.username,
-            avatarURL: event.avatarUrl,
+            username: event.username || settings.username,
+            avatarURL: event.avatarUrl || settings.avatarUrl,
             embeds: [embed],
         }
 
         client.send(payload).catch(error => {
-            console.error(`Relay message log failed: "${error}".`)
+            console.error(`Relay message log failed: "${error}".`.red)
         })
     },
 

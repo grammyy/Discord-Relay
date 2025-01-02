@@ -9,40 +9,21 @@ import util  from "./util.js"
 var webhook = {
     relay:async function(webhook, message) {
         try {
+            var start = performance.now()
+            var client = new WebhookClient({ url: webhook })
             var content = message.content
 
-            if (!content) {
-
-                if (message.stickers.size > 0) {
-                    message.stickers.keys().forEach((sticker) => { // todo: redo this more properly, this is a dirty way and only works if the user ONLY sends a sticker
-                        content += ` https://media.discordapp.net/stickers/${sticker}.gif?size=160`
-                    })
-                } else {
-                    return
-                }
+            // todo: transfer to utils
+            if (!content && message.stickers.size > 0) {
+                message.stickers.forEach(sticker => {
+                    content += ` https://media.discordapp.net/stickers/${sticker}.gif?size=160`
+                })
             }
             
-            var client = new WebhookClient({ url: webhook })
-      
-            // ↓ configuration ↓
-            var server = redirects[message.guildId] ? redirects[message.guildId].server : false
-            var guild = (server || settings.server).replace("SERVER", message.guild.name)
-
-            // ↓ author's data [nickname || globalname, avatar] ↓
-            // if bot, add [BOT]; additionally, search settings for type of display
-            var author = message.guild.members.cache.get(message.author.id)
-            var display = (author.nickname || message.author.globalName) + (message.author.bot ? " [BOT]" : "")
-            var isNicked = (display && (settings.name == "nickname"))
-
-            // ↓ if nickname (if setting allows), set it or otherwise use username ↓
-            var authorName = isNicked ? `${(display)}${guild}` : `${author.username}${guild}`
-            var authorAvatarURL = author.displayAvatarURL({ format: 'png', size: 1024 })
-      
             // ↓ check if the message is a reply ↓
             if (message.reference) {
                 var repliedMessage = await message.channel.messages.fetch(message.reference.messageId)
     
-                // todo: make it link back to the original
                 // todo: make message link a optional setting
                 // ↓ make reply a quote and formats into message link ↓
                 var reply = `[${util.suppressEmbed(repliedMessage.content)}](https://discord.com/channels/${message.reference.guildId}/${message.reference.channelId}/${message.reference.messageId})`
@@ -53,14 +34,22 @@ var webhook = {
                 content = reply + "\n" + content
             }
 
-            return await client.send({
-                username: authorName,
-                avatarURL: authorAvatarURL,
+            var [name, avatar] = util.getDisplayName(message.author, message.guild)
+
+            var log = await client.send({
+                username: name,
+                avatarURL: avatar,
                 content: content,
                 files: message.attachments.map(attachment => attachment.url)
             })
+
+            var end = performance.now()
+            var duration = (end - start).toFixed(2)
+            log.ms = duration
+
+            return log
         } catch (error) {
-            console.error(`Failed to send message via webhook:`, error)
+            console.error(`Relay failed for channel ${message.channel.name} in ${message.guild.name}: ${error}`.red)
         }
     },
 
@@ -84,19 +73,20 @@ var webhook = {
                 for (var channels of Object.keys(channel.goto)) {
                     var channelId = channel.goto[channels]
 
-                    try{    
+                    try{
                         var log = await webhook.relay(channelId, message)
             
                         console.log(`Routing as ${log.author.username} to: ${log.channel_id}`)
                         
                         channelCache[log.channel_id] = {
                             channelId: log.channel_id,
+                            ms: log.ms
                         }
                     } catch(error) {
-                        console.log(`Routing failed: ${error}/`)
+                        console.log(`Routing failed at ${channelId}: ${error}/`)
 
                         channelCache[channelId] = {
-                            channelId: channelId,
+                            channelId: channelId, 
                             error: error
                         }
                     }
@@ -111,17 +101,13 @@ var webhook = {
                         description: `Relaying message from ${message.guild.name} (${message.channel.name}): ["${message.content}"](https://discord.com/channels/${message.guildId}/${message.channelId}/${message.id})`,
                         color: 0x00ff00,
                         fields: Object.keys(channel.goto).map(channelId => ({
-                            name: `${channelCache[channelId]?.error ? "Error while " : ""}Relaying to:`,
-                            value: channelCache[channelId].channelId + (channelCache[channelId]?.error ? ` -> "${channelCache[channelId]?.error}"` : ""),
+                            name: `${channelCache[channelId]?.error ? "Error while " : ""}Relaying to: ${channelCache[channelId].channelId}`,
+                            value: channelCache[channelId]?.error || `Done in ${channelCache[channelId].ms}ms`,
                             inline: true
                         })),
                         footer: {
                             text: `Completed in ${duration}ms`
                         },
-
-                        // todo: change this out for actual settings/fallback
-                        username: "test relay",
-                        avatarUrl: "https://cdn.discordapp.com/avatars/1308288522574233661/e22cc7964fce3430dcc142f60ddd84b3.webp?size=1024&width=506&height=506"
                     })
                 }
 

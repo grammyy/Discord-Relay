@@ -42,16 +42,17 @@ var twoway = {
                 try {
                     var log = await webhook.relay(channels[channelId], message)
 
-                    console.log(`Relayed: "${message.content}" as ${log.author.username} to ${log.channel_id}`)
+                    console.log(`Relayed: "${message.content}" as ${log.author.username} to: ${log.channel_id}`)
                     
                     channelCache[channelId] = { 
-                        channelId: log.channel_id 
+                        channelId: log.channel_id,
+                        ms: log.ms
                     }
                 } catch (error) {
-                    console.error(`Relay failed for channel ${channelId}: ${error}`)
+                    console.error(`Relay failed for channel ${channelId}: ${error}`.red)
 
                     channelCache[channelId] = { 
-                        channelId,
+                        channelId: channelId,
                         error: [
                             error, 
                             error.message
@@ -69,15 +70,11 @@ var twoway = {
                     description: `Relaying message from ${message.guild.name} (${message.channel.name}): ["${message.content}"](https://discord.com/channels/${message.guildId}/${message.channelId}/${message.id})`,
                     color: 0x00ff00,
                     fields: Object.keys(channels).map(channelId => ({
-                        name: `${channelCache[channelId]?.error ? "Error while " : ""}Relayed to:`,
-                        value: channelCache[channelId]?.channelId + (channelCache[channelId]?.error ? ` -> "${channelCache[channelId]?.error}"` : ""),
+                        name: `${channelCache[channelId]?.error ? "Error while " : ""}Relayed to: ${channelCache[channelId].channelId}`,
+                        value: channelCache[channelId]?.error || `Done in ${channelCache[channelId].ms}ms`,
                         inline: true,
                     })),
                     footer: { text: `Completed in ${duration}ms` },
-                    
-                    // todo: change this out for actual settings/fallback
-                    username: "Message Relay Bot",
-                    avatarUrl: "https://cdn.discordapp.com/avatars/1308288522574233661/e22cc7964fce3430dcc142f60ddd84b3.webp?size=1024",
                 })
             }
 

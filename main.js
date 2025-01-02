@@ -60,9 +60,9 @@ client.on('messageCreate', async message => {
 client.on('messageDelete', async message => {
     if (message.partial) {
         try {
-            await message.fetch() // Fetch the full message if it was partial
+            await message.fetch()
         } catch (error) {
-            console.log(`Failed to fetch deleted message: ${error}`)
+            console.log(`Failed to fetch deleted message: ${error}`.red)
             
             return
         }
@@ -82,9 +82,31 @@ var watcher = watch("config.json", {
 })
 
 watcher.on("change", () => {
-    console.log('Config file updated, reloading...')
+    console.group('Config file updated, reloading...')
 
-    config = JSON.parse(fs.readFileSync("config.json", "utf8"))
-    settings = config.global
-    redirects = config.redirects
+    try{
+        config = JSON.parse(fs.readFileSync("config.json", "utf8"))
+
+        // todo: perform verification checks to check if relaying is possible with provided settings
+        for (var channel in config.redirects) {
+            if (!redirects[channel]) {
+                console.group(`New relay found: ${channel}. Listing relay tunnels now...`)
+                
+                for (var channel in config.redirects[channel].goto) {
+                    console.log(`-> ${channel}`)
+                }
+
+                console.groupEnd()
+            }
+        }
+
+        settings = config.global
+        redirects = config.redirects
+
+        console.log("Updated config successfully.".green)
+    } catch(error) {
+        console.log("Updating config internally has failed. Please check syntax.".red)
+    }
+
+    console.groupEnd()
 })

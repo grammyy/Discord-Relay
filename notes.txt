@@ -1,7 +1,6 @@
 todo:
     interface for adding channels easily, probably web type thing - should be last step
     advance chat
-        semi-done // * proxy replies if not already
         * proxy permissions
             if everyone ping is turned off on relay, even if its on for the relayed - it will be safe typed regardless unless both are turned on
         cross-server report messages
@@ -37,4 +36,5 @@ todo:
             done //* add links to original on replies
             done // * proxy attachments
             done // * bot sig for bot messages
+            done // * proxy replies if not already
         done // hotloading

@@ -4,17 +4,22 @@ import logging from "./logging.js"
 import webhook from "./webhook.js"
 
 var twoway = {
+    parse: function() {},
+
+    populate: function() {},
+
     init: function () {
         hooks.add("messageCreate", async function (message) {
+            // ↓ assemblies redirect list for relaying ↓
             for (var channelId in redirects) {
                 var channel = redirects[channelId]
-                var goto = channel.goto || {}
+                var goto = channel?.goto 
 
                 var twoway = channel?.["two-way"] === undefined
                     ? settings["two-way"]
                     : channel["two-way"]
 
-                if (!twoway) return
+                if (!twoway || !goto) return
 
                 var channels = {}
 

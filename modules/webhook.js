@@ -63,15 +63,16 @@ var webhook = {
         hooks.add("messageCreate", async function(message){
             // ↓ todo: add channel searching | check if the channel ID or name matches a source channel in redirects ↓
             var channel = redirects[message.channel.id]
+            var goto = channel?.goto
             var channelCache = {}
-        
-            if (channel) {
+
+            if (channel && goto) {
                 console.group(`Relaying message from ${message.guild.name} (${message.channel.name}): "${message.content}"`)
             
                 var start = performance.now()
             
-                for (var channels of Object.keys(channel.goto)) {
-                    var channelId = channel.goto[channels]
+                for (var channels of Object.keys(goto || {})) {
+                    var channelId = goto[channels]
 
                     try{
                         var log = await webhook.relay(channelId, message)

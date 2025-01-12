@@ -19,7 +19,6 @@ todo:
         * button to open to web log (future feature)
     advance network types
         * identify by unique names for easy webhook connections
-        * use network ids for a more unified system
     search channel by name in redirects? probably do this *last*
     support other types of channels like forums
 
@@ -38,3 +37,5 @@ todo:
             done // * bot sig for bot messages
             done // * proxy replies if not already
         done // hotloading
+        advance network types
+            done // * use network ids for a more unified system

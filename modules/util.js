@@ -11,7 +11,7 @@ var util = {
         // ↓ member's data [nickname || globalname, avatar] ↓
         // if bot, add [BOT]; additionally, search settings for type of display; make optional later
         var author = guild.members.cache.get(member.id)
-        var display = (author.nickname || member.globalName) + (member.bot ? " [BOT]" : "")
+        var display = (author.nickname || member.displayName) + (member.bot ? " [BOT]" : "")
         var isNicked = (display && (settings.name == "nickname"))
 
         // ↓ if nickname (if setting allows), set it or otherwise use username ↓

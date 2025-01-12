@@ -5,8 +5,9 @@ import fs from "fs"
 import env from "dotenv"
 
 // ↓ modules ↓
-import twoway from "./modules/twoway.js"
 import logging from "./modules/logging.js"
+import network from "./modules/network.js"
+import twoway from "./modules/twoway.js"
 import util from "./modules/util.js"
 import webhook from "./modules/webhook.js"
 
@@ -41,6 +42,7 @@ var client = new Client({
 
 client.once('ready', () => {
     console.log(logging.init())
+    console.log(network.init())
     console.log(twoway.init())
     console.log(util.init())
     console.log(webhook.init())
